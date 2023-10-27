@@ -7,6 +7,8 @@ import {
   useNavigate
 } from 'react-router-dom'
 
+import { useField } from './hooks'
+
 const Menu = () => {
   const padding = {
     paddingRight: 5
@@ -61,26 +63,32 @@ const Footer = () => (
 )
 
 const CreateNew = ({ addNew, setNotification }) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
-
+  const [content, clearContent] = useField('text')
+  const [author, clearAuthor] = useField('text')
+  const [info, clearInfo] = useField('text')
   const navigate = useNavigate()
 
 
   const handleSubmit = (e) => {
     e.preventDefault()
     addNew({
-      content,
-      author,
-      info,
+      content: content.value,
+      author: author.value,
+      info: info.value,
       votes: 0
     })
-    setNotification(`Created new anecdote: "${content}"`)
+    setNotification(`Created new anecdote: "${content.value}"`)
     setTimeout(() => {
       setNotification('')
     }, 5000)
     navigate('/')
+  }
+
+  const clearForm = (event) => {
+    event.preventDefault()
+    clearContent()
+    clearAuthor()
+    clearInfo()
   }
 
   return (
@@ -89,17 +97,18 @@ const CreateNew = ({ addNew, setNotification }) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input name='content' {...content} />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input name='author' {...author} />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e)=> setInfo(e.target.value)} />
+          <input name='info' {...info} />
         </div>
         <button>create</button>
+        <button onClick={clearForm}>clear</button>
       </form>
     </div>
   )
@@ -135,7 +144,7 @@ const App = () => {
     anecdote.id = Math.round(Math.random() * 10000)
     setAnecdotes(anecdotes.concat(anecdote))
   }
-
+  /*
   const anecdoteById = (id) =>
     anecdotes.find(a => a.id === id)
 
@@ -149,7 +158,7 @@ const App = () => {
 
     setAnecdotes(anecdotes.map(a => a.id === id ? voted : a))
   }
-
+  */
   return (
     <div>
       <h1>Software anecdotes</h1>
