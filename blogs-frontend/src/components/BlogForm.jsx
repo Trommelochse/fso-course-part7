@@ -1,70 +1,58 @@
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { useField } from '../hooks'
+import { notify } from '../reducers/notificationReducer'
+import { createBlogAction } from '../reducers/blogReducer'
+import { useSelector } from 'react-redux'
+import blogService from '../services/blogs'
 
-const BlogForm = ({ user, addBlog }) => {
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
+const BlogForm = () => {
+  const user = useSelector((state) => state.user)
+  const [titleField, resetTitleField] = useField('text')
+  const [authorField, resetAuthorField] = useField('text')
+  const [urlField, resetUrlField] = useField('text')
 
-  const handleInputChange = (e, fn) => {
-    fn(e.target.value)
-  }
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const handleBlogSubmit = (e) => {
     e.preventDefault()
-    const newBlog = { title, author, url }
-    addBlog(newBlog)
-    setTitle('')
-    setAuthor('')
-    setUrl('')
-  }
-
-  const formStyle = {
-    marginBottom: 20,
-  }
-
-  const inputStyle = {
-    display: 'inline-block',
-    width: 250,
-    fontSize: 20,
-    marginLeft: 15,
-    marginBottom: 10,
-  }
-
-  const labelStyle = {
-    display: 'inline-block',
-    minWidth: 80,
+    const newBlog = {
+      title: titleField.value,
+      author: authorField.value,
+      url: urlField.value,
+      user: user.id,
+    }
+    blogService.setToken(user.token)
+    dispatch(createBlogAction(newBlog))
+    resetTitleField()
+    resetAuthorField()
+    resetUrlField()
+    navigate('/')
+    dispatch(
+      notify(
+        `A new blog ${titleField.value} by ${authorField.value} added`,
+        'success',
+        3,
+      ),
+    )
   }
 
   return (
     <>
       <h3>Submit new Blog as {user.username} </h3>
-      <form onSubmit={handleBlogSubmit} style={formStyle}>
+      <form onSubmit={handleBlogSubmit}>
         <div>
-          <label style={labelStyle}>Title</label>
-          <input
-            onChange={(e) => handleInputChange(e, setTitle)}
-            value={title}
-            style={inputStyle}
-            placeholder="Enter title"
-          />
+          <label>Title</label>
+          <input {...titleField} />
         </div>
         <div>
-          <label style={labelStyle}>Author</label>
-          <input
-            onChange={(e) => handleInputChange(e, setAuthor)}
-            value={author}
-            style={inputStyle}
-            placeholder="Enter author"
-          />
+          <label>Author</label>
+          <input {...authorField} />
         </div>
         <div>
-          <label style={labelStyle}>URL</label>
-          <input
-            onChange={(e) => handleInputChange(e, setUrl)}
-            value={url}
-            style={inputStyle}
-            placeholder="Enter URL"
-          />
+          <label>URL</label>
+          <input {...urlField} />
         </div>
         <input type="submit" className="primary" />
       </form>

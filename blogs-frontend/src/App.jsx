@@ -1,164 +1,64 @@
-import { useState, useEffect, useRef } from 'react'
-import Blog from './components/Blog'
+import { Routes, Route, Link, useNavigate, useMatch } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import LoginForm from './components/LoginForm'
+import BlogList from './components/BlogList'
+import BlogPost from './components/BlogPost'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
-import loginService from './services/login'
+import Users from './components/Users'
+import User from './components/User'
 import blogService from './services/blogs'
+import { authSuccess, logoutAction } from './reducers/authReducer'
+import { initializeBlogs } from './reducers/blogReducer'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
-  const [notification, setNotification] = useState(null)
-
   const blogFormRef = useRef()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  const auth = useSelector((state) => state.auth)
+  const users = useSelector((state) => state.users)
+  const blogs = useSelector((state) => state.blogs)
+  const { user } = auth
 
   useEffect(() => {
-    ;(async () => {
-      const blogs = await blogService.getAll()
-      setBlogs(blogs)
-    })()
-  }, [])
+    if (auth.authenticated) {
+      blogService.setToken(auth.user.token)
+    }
+  }, [auth, dispatch])
 
   useEffect(() => {
-    const loggedInUser = window.localStorage.getItem('blogAppUser')
-    if (loggedInUser) {
-      blogService.setToken(loggedInUser.token)
-      setUser(JSON.parse(loggedInUser))
+    if (!user) {
+      navigate('/login')
     }
-  }, [])
+  }, [user, navigate])
 
-  const handleInputChange = (e, fn) => {
-    fn(e.target.value)
-  }
-
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault()
-
-    try {
-      const user = await loginService.login({ username, password })
-      window.localStorage.setItem('blogAppUser', JSON.stringify(user))
-      blogService.setToken(user.token)
-      setUser(user)
-    } catch (exception) {
-      setNotification({ type: 'error', message: 'Wrong Username or Password' })
-      setTimeout(() => {
-        setNotification(null)
-      }, 5000)
-    }
-  }
+  useEffect(() => {
+    dispatch(initializeBlogs())
+  }, [dispatch])
 
   const handleLogout = () => {
-    window.localStorage.removeItem('blogAppUser')
-    setUser(null)
-  }
-
-  const sortByLikes = () => {
-    setBlogs([...blogs].sort((a, b) => b.likes - a.likes))
-  }
-
-  const addBlog = async (blog) => {
-    blogService.setToken(user.token)
-    const newBlog = await blogService.create(blog)
-    newBlog.user = user
-    setBlogs([...blogs, newBlog])
-    setNotification({
-      type: 'success',
-      message: `Save Successful: "${newBlog.title}" by ${newBlog.author}`,
-    })
-    setTimeout(() => {
-      setNotification(null)
-    }, 5000)
-    blogFormRef.current.toggleVisibility()
-  }
-
-  const updateLikes = async (blog) => {
-    const updatedBlog = await blogService.update(blog)
-    setBlogs(blogs.map((b) => (b.id !== updatedBlog.id ? b : updatedBlog)))
-  }
-
-  const deleteBlog = async (id) => {
-    blogService.setToken(user.token)
-    const response = await blogService.remove(id)
-    if (response.status === 204) {
-      setBlogs(blogs.filter((b) => b.id !== id))
-    }
-  }
-
-  const loginForm = () => {
-    return (
-      <>
-        <h2>Log in to Application</h2>
-        <form onSubmit={handleLoginSubmit}>
-          <div>
-            <label>Username</label>
-            <input
-              value={username}
-              onChange={(e) => handleInputChange(e, setUsername)}
-              id="username-input"
-            />
-          </div>
-          <div>
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => handleInputChange(e, setPassword)}
-              id="password-input"
-            />
-          </div>
-          <input type="submit" className="primary" value="Login" />
-        </form>
-      </>
-    )
+    dispatch(logoutAction())
+    navigate('/login')
   }
 
   const userInfo = () => {
-    const userInfoStyle = {
-      marginBottom: 30,
-      padding: '15px 30px',
-      boxShadow: '1px 3px 2px -1px rgba(0,0,0,0.4)',
-      backgroundColor: '#c8c8c8',
-    }
     return (
-      <div style={userInfoStyle}>
+      <div>
         <p>
-          Logged in as <strong>{user.username}</strong>{' '}
-          {user.name ? ` (${user.name})` : null}
+          Logged in as <strong>{user.username}</strong>
         </p>
-        <button className="secondary" onClick={handleLogout}>
-          Log out
-        </button>
+        <button onClick={handleLogout}>Log out</button>
       </div>
     )
   }
 
   const blogForm = () => (
     <Togglable buttonLabel="Create new Blog" ref={blogFormRef}>
-      <BlogForm user={user} addBlog={addBlog} />
+      <BlogForm user={user} />
     </Togglable>
-  )
-
-  const blogList = () => (
-    <>
-      <h2>blogs</h2>
-      <div>
-        <button className="secondary" onClick={sortByLikes}>
-          Sort by Likes
-        </button>
-      </div>
-      {blogs.map((blog) => (
-        <Blog
-          key={blog.id}
-          blog={blog}
-          updateLikes={updateLikes}
-          userId={user.id}
-          deleteBlog={deleteBlog}
-        />
-      ))}
-    </>
   )
 
   const appStyle = {
@@ -167,18 +67,39 @@ const App = () => {
     backgroundColor: '#ffffff',
   }
 
+  const userMatch = useMatch('/users/:id')
+  const userToShow = userMatch
+    ? users?.find((user) => user.id === userMatch.params.id)
+    : null
+
+  const blogMatch = useMatch('/blogs/:id')
+  const blogToShow = blogMatch
+    ? blogs?.find((user) => user.id === blogMatch.params.id)
+    : null
+
   return (
     <div style={appStyle}>
-      {user && userInfo()}
-      {notification && <Notification notification={notification} />}
-      {user ? (
-        <>
-          {blogForm()}
-          {blogList()}
-        </>
-      ) : (
-        loginForm()
-      )}
+      <nav>
+        <Link to="/">Blogs</Link>
+        <Link to="/users">Users</Link>
+        {user && userInfo()}
+      </nav>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              {blogForm()}
+              <BlogList />
+            </>
+          }
+        />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/users/:id" element={<User user={userToShow} />} />
+        <Route path="/blogs/:id" element={<BlogPost blog={blogToShow} />} />
+      </Routes>
+      <Notification />
     </div>
   )
 }

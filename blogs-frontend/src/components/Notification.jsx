@@ -1,4 +1,12 @@
-const Notification = ({ notification }) => {
+import { useSelector } from 'react-redux'
+
+const Notification = () => {
+  const notification = useSelector((state) => state.notification)
+
+  if (!notification) {
+    return null
+  }
+
   const highlightColor = notification.type === 'error' ? '#BF1A2F' : '#018E42'
   const style = {
     position: 'fixed',
