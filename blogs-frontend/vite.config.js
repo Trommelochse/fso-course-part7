@@ -4,6 +4,14 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  css: {
+    preprocessorOptions: {
+      // Specify the path to your CSS entry file
+      postcss: {
+        config: './postcss.config.js',
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {

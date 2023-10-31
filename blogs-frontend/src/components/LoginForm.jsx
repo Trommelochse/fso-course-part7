@@ -37,20 +37,22 @@ const LoginForm = () => {
   }
 
   return (
-    <>
-      <h2>Log in to Application</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username</label>
-          <input {...usernameField} />
-        </div>
-        <div>
-          <label>Password</label>
-          <input {...passwordField} />
-        </div>
-        <input type="submit" className="primary" value="Login" />
-      </form>
-    </>
+    <div className="flex flex-row justify-center">
+      <div>
+        <h3 className="text-2xl mb-4">Log in to Application</h3>
+        <form onSubmit={handleSubmit} className="mb-4">
+          <div className="mb-2">
+            <label>Username</label>
+            <input {...usernameField} />
+          </div>
+          <div className="mb-4">
+            <label>Password</label>
+            <input {...passwordField} />
+          </div>
+          <input type="submit" className="btn-primary" value="Login" />
+        </form>
+      </div>
+    </div>
   )
 }
 

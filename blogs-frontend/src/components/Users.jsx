@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { initializeUsers } from '../reducers/userReducer'
-import userService from '../services/users'
 import { Link } from 'react-router-dom'
 
 const Users = () => {
@@ -9,15 +8,13 @@ const Users = () => {
 
   const dispatch = useDispatch()
   useEffect(() => {
-    userService.getAll().then((response) => {
-      dispatch(initializeUsers(response.data))
-    })
+    dispatch(initializeUsers())
   }, [dispatch])
 
   return (
     <div>
-      <h2>Users</h2>
-      <table>
+      <h2 className="text-2xl font-bold mb-4">Users</h2>
+      <table className="divide-y divide-gray-200">
         <thead>
           <tr>
             <th>Name</th>
@@ -29,7 +26,12 @@ const Users = () => {
           {users?.map((user) => (
             <tr key={user.id}>
               <td>
-                <Link to={`/users/${user.id}`}>{user.name}</Link>
+                <Link
+                  to={`/users/${user.id}`}
+                  className="underline hover:text-blue-500"
+                >
+                  {user.name}
+                </Link>
               </td>
               <td>{user.username}</td>
               <td>{user.blogs?.length}</td>

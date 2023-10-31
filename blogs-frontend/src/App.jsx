@@ -1,6 +1,7 @@
-import { Routes, Route, Link, useNavigate, useMatch } from 'react-router-dom'
+import { Routes, Route, useNavigate, useMatch } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import Navigation from './components/Navigation'
 import LoginForm from './components/LoginForm'
 import BlogList from './components/BlogList'
 import BlogPost from './components/BlogPost'
@@ -39,33 +40,11 @@ const App = () => {
     dispatch(initializeBlogs())
   }, [dispatch])
 
-  const handleLogout = () => {
-    dispatch(logoutAction())
-    navigate('/login')
-  }
-
-  const userInfo = () => {
-    return (
-      <div>
-        <p>
-          Logged in as <strong>{user.username}</strong>
-        </p>
-        <button onClick={handleLogout}>Log out</button>
-      </div>
-    )
-  }
-
   const blogForm = () => (
     <Togglable buttonLabel="Create new Blog" ref={blogFormRef}>
-      <BlogForm user={user} />
+      <BlogForm toggleRef={blogFormRef} />
     </Togglable>
   )
-
-  const appStyle = {
-    width: 960,
-    margin: '0 auto',
-    backgroundColor: '#ffffff',
-  }
 
   const userMatch = useMatch('/users/:id')
   const userToShow = userMatch
@@ -78,28 +57,28 @@ const App = () => {
     : null
 
   return (
-    <div style={appStyle}>
-      <nav>
-        <Link to="/">Blogs</Link>
-        <Link to="/users">Users</Link>
-        {user && userInfo()}
-      </nav>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              {blogForm()}
-              <BlogList />
-            </>
-          }
-        />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/users/:id" element={<User user={userToShow} />} />
-        <Route path="/blogs/:id" element={<BlogPost blog={blogToShow} />} />
-      </Routes>
-      <Notification />
+    <div className="flex flex-col items-center bg-white min-h-screen">
+      <div className="container margin-0-auto bg-gray-50">
+        <Navigation />
+        <div className="lg:py-4 lg:px-8">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  {blogForm()}
+                  <BlogList />
+                </>
+              }
+            />
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/users/:id" element={<User user={userToShow} />} />
+            <Route path="/blogs/:id" element={<BlogPost blog={blogToShow} />} />
+          </Routes>
+        </div>
+        <Notification />
+      </div>
     </div>
   )
 }

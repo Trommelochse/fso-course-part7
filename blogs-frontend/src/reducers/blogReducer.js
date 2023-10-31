@@ -50,6 +50,13 @@ export const updateLikesAction = (blog) => {
   }
 }
 
+export const addCommentAction = (blogId, comment) => {
+  return async dispatch => {
+    const response = await blogService.createComment(blogId, comment)
+    dispatch(updateBlog(response.data))
+  }
+}
+
 export const sortByLikesAction = (blogs) => {
   return async dispatch => {
     if (!blogs) return

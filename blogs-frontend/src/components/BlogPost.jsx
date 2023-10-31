@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateLikesAction, deleteBlogAction } from '../reducers/blogReducer'
 import blogService from '../services/blogs'
 
+import Comments from './Comments'
+
 const BlogPost = ({ blog }) => {
   const user = useSelector((state) => state.auth.user)
   const dispatch = useDispatch()
@@ -10,7 +12,7 @@ const BlogPost = ({ blog }) => {
 
   if (!blog) return null
 
-  const blogUserId = blog && blog.user === 'string' ? blog.user : blog.user.id
+  const blogUserId = typeof blog.user === 'string' ? blog.user : blog.user.id
 
   const handleLike = () => {
     dispatch(updateLikesAction(blog))
@@ -25,18 +27,29 @@ const BlogPost = ({ blog }) => {
   }
 
   return (
-    <div>
-      <h2>{blog.title}</h2>
-      <p>{blog.author}</p>
-      <p>
-        <a href={blog.url}>{blog.url}</a>
+    <div className="py-4 px-8 bg-white rounded-lg shadow">
+      <h2 className="text-2xl mb-2">{blog.title}</h2>
+      <p className="text-gray-400 font-italic">by {blog.author}</p>
+      <p className="mb-4">
+        Read more here:{' '}
+        <a href={blog.url} className="text-blue-500 underline">
+          {blog.url}
+        </a>
       </p>
-      <p>
-        {blog.likes} likes <button onClick={handleLike}>Like</button>
+      <p className="flex flex-row space-x-4 mb-4">
+        <span>{blog.likes} likes</span>
+        <button onClick={handleLike} className="btn-primary btn-sm">
+          Like
+        </button>
       </p>
-      {blogUserId === user.id ? (
-        <button onClick={handleDelete}>Delete</button>
-      ) : null}
+      <div className="flex flex-row justify-end">
+        {blogUserId === user.id ? (
+          <button onClick={handleDelete} className="btn-danger btn-sm">
+            Delete
+          </button>
+        ) : null}
+      </div>
+      <Comments blog={blog} />
     </div>
   )
 }
